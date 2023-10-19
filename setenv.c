@@ -1,5 +1,4 @@
 #include "main.h"
-
 /**
  * _setenv - Sets or updates an environment variable
  * @name: The name of the environment variable to set or update
@@ -13,14 +12,12 @@ int _setenv(const char *name, const char *value, int overwrite)
 	int j = 0;
 	int c = 0;
 	char *newValue = malloc(_strlen(name) + _strlen("=") + _strlen(value) + 1);
-	extern char **environ;
-
+	/*extern char **environ;*/
 	if (newValue == NULL)
 	{
 		free(newValue);
 		return (-1);
 	}
-
 	while (environ[i] != NULL)
 	{
 		if (_strcmp(environ[i], name) == 1)
@@ -47,7 +44,6 @@ int _setenv(const char *name, const char *value, int overwrite)
 		}
 		i++;
 	}
-
 	free(newValue);
 	return (0);
 }

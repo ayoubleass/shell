@@ -1,9 +1,60 @@
 #include "main.h"
 
+
+/**
+ * execute - Executes a command in a child process
+ * @cmd: The command to execute
+ * @arguments: An array of arguments for the command
+ * @environ: The environment variables
+ * @filename: executable name
+ */
+void execute(char *cmd, char **arguments, char **environ, char *filename)
+{
+	int status;
+	struct stat st;
+	char *fullcmd;
+	char *path = _getenv("PATH"), *pathcpy = malloc(_strlen(path) + 1);
+
+	_strcpy(pathcpy, path);*/
+	if (str_containe(cmd, "/bin") == 0)
+	{
+		fullcmd = malloc(_strlen(cmd) + 1);
+		_strcpy(fullcmd, cmd);
+		_strcpy(fullcmd, extractToken(cmd));
+	}
+
+	else 
+		handleCommand(pathcpy, extractToken(cmd), &fullcmd);
+
+	if (stat(fullcmd, &st) == 0)
+	{
+		pid_t pid = fork();
+
+		if (pid == 1)
+			perror("fork");
+		else if (pid == 0)
+			execve(fullcmd, arguments, environ);
+		else
+		{
+			wait(&status);
+			free(cmd);
+			free(fullcmd);
+			free(pathcpy);
+		}
+	}
+	else
+	{
+		perror(filename);
+		free(cmd);
+		free(pathcpy);
+	}
+}
+
 /**
  * main - Interpret Unix commands
  * @argc: Number of parameters passed to the main function
  * @argvv:  Array of strings containing command-line arguments
+ * @env: environnement variables
  * Return: Returns an exit status/error code to the operating system
  */
 
@@ -11,20 +62,12 @@
 
 int main(int argc, char **argvv, char **env)
 {
-	char *path = _getenv("PATH");
-	char *path_copy = malloc(strlen(path) + 1);
-
 	while (1)
 	{
-		char *cmd = malloc(sizeof(char));
 		char *lineptr;
 		ssize_t n = 0;
 		ssize_t line_length;
-		pid_t pid;
 		char **argv;
-		int status;
-		char *token;
-		int ch;
 
 		if (isatty(STDIN_FILENO))
 		{
@@ -32,91 +75,26 @@ int main(int argc, char **argvv, char **env)
 			line_length = _getline(&lineptr, &n, stdin);
 			removenewtag(lineptr, line_length);
 			argv = setexecveArgs(lineptr);
-
 			if (line_length < 1)
 			{
 				_putchar('\n');
 				exit(0);
 			}
-
 			if (_strcmp(lineptr, "exit") == 0)
 			{
 				free(lineptr);
-				exit(98);
+				printString("exit", 4);
+				_putchar('\n');
+				return (argv[1] ? atoi(argv[1]) : 0);
 			}
-
-			if (_strcmp(lineptr, "env") == 0)
+			if (line_length)
 			{
-				print_env(env);
+				execute(lineptr, argv, env, argvv[argc - 1]);
 				continue;
 			}
-
-			if (str_containe(lineptr, "/bin") == 0)
-				cmd = _strcpy(cmd, extractToken(lineptr));
-
-			if (strcmp(argv[0], "cd") == 0)
-			{
-				char *buffer = malloc(1024);
-
-				if (!argv[1])
-				{
-					ch = chdir(_getenv("HOME"));
-					if (ch == 0)
-						_setenv("PWD", _getenv("HOME"), 1);
-				}
-				else if (_strcmp(argv[1], "-") == 0)
-				{
-					if(chdir(_getenv("OLDPWD")))
-						_setenv("PWD", getcwd(buffer, 1024), 1);
-				}
-				else
-				{
-					if (chdir(argv[1]) == 0)
-					_setenv("PWD", getcwd(buffer, 1024), 1);
-					else
-						perror("chdir");
-					free(buffer);
-				}
-				continue;
-			}
-
-			if (str_containe(lineptr, "/bin") != 0)
-			{
-				_strcpy(path_copy, path);
-				token = handleCommand(path_copy, lineptr, &cmd);
-				if (token == NULL)
-				{
-					perror(argvv[argc - 1]);
-					free(lineptr);
-					free(cmd);
-					continue;
-				}
-			}
-
-			if (cmd)
-			{
-				pid = fork();
-				if (pid == 1)
-				{
-					perror("fork");
-				}
-				if (pid == 0)
-				{
-					argv = setexecveArgs(lineptr);
-					execve(cmd, argv, environ);
-				}
-				else
-				{
-					wait(&status);
-					free(lineptr);
-				}
-			}
-
 		}
 		else
-		{
-			pipedCommand();
-		}
+			pipedCommand(argvv[0]);
 	}
 	return (0);
 }

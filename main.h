@@ -29,6 +29,7 @@ void removenewtag(char *lineptr, ssize_t linelen);
 void printString(char *str, ssize_t length);
 ssize_t _getline(char **buffer, ssize_t *n, FILE *stream);
 char *handleCommand(char *path_copy, char *lineptr, char **cmd);
-void pipedCommand(void);
+void pipedCommand(char *filename);
+char *str_remove(const char *str, const char *s);
 
 #endif

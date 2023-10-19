@@ -2,8 +2,9 @@
 
 /**
  * pipedCommand - run the piped command.
+ * @filename: executable name.
  */
-void pipedCommand(void)
+void pipedCommand(char *filename)
 {
 	char *lineptr;
 	ssize_t n = 0;
@@ -11,6 +12,7 @@ void pipedCommand(void)
 	char *arg[3];
 	int i = 0;
 	char **argv;
+	pid_t pid;
 
 	line_length = _getline(&lineptr, &n, stdin);
 	if (line_length)
@@ -23,7 +25,23 @@ void pipedCommand(void)
 
 		while (argv[i] != NULL)
 		{
-			execve(argv[i], arg, NULL);
+			pid = fork();
+			if (pid  == 0)
+			{
+				if (execve(argv[i], arg, NULL) == -1)
+				{
+					char *error =  malloc(1024);
+
+					_strcpy(error, filename);
+					error =  _strcat(error, ": ");
+					error = _strcat(error, argv[i]);
+					printf("%s: not found\n", error);
+					free(error);
+					exit(98);
+				}
+			}
+			else
+				wait(NULL);
 			i++;
 		}
 	}

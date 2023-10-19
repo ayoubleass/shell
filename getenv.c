@@ -16,32 +16,20 @@
 char *_search(char **env, char *name, char c)
 {
 	int i = 0;
-	char *result = malloc(sizeof(char));
 
 	while (env[i] != NULL)
 	{
-		if (str_containe(env[i], name) == 0)
+		if (str_containe(env[i], name)  == 0 && env[i][strlen(name)] == c)
 		{
-			while (*env[i] != '\0')
-			{
-				if (*env[i] == c)
-				{
-					env[i]++;
-					result = malloc(_strlen(env[i]) + 1);
-					result = _strcpy(result, env[i]);
-				}
-				env[i]++;
-			}
+			char *result = malloc(_strlen(env[i]) + 1);
+
+			_strcpy(result, env[i]);
+			return (result);
 		}
 		i++;
 	}
-	if (result)
-	{
-		return (result);
-	}
 	return (NULL);
 }
-
 /**
  * _getenv - Retrieves the value of an environment variable by name
  * @name: The name of the environment variable to retrieve
@@ -51,10 +39,10 @@ char *_search(char **env, char *name, char c)
 
 char *_getenv(char *name)
 {
-	extern char **environ;
 	char *result;
+	char **env = environ;
 
-	result = _search(environ, name, '=');
+	result = _search(env, name, '=');
 	return (result);
 }
 
